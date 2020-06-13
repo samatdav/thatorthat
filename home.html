@@ -1,0 +1,88 @@
+<html>
+
+<head>
+    <title>That OR That</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+        integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+    <link rel="stylesheet" href="./style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Indie+Flower&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div id="name-header">
+        <div class="home"><img src="logo.svg" />
+        </div>
+        Top quizes
+        <a href="./create.html">
+            <span class="create-quiz">Create quiz</span>
+        </a>
+    </div>
+    <div>
+    </div>
+    <ul id="quizes-list"></ul>
+    <div class="table-wrap">
+        <table id="quizes-table" class="table">
+            <tr>
+                <th>Quiz</th>
+                <th>Likes</th>
+                <th>Dislikes</th>
+                <th>Items</th>
+            </tr>
+            <tr>
+    </div>
+</body>
+
+<script src="/__/firebase/7.14.4/firebase-app.js"></script>
+<script src="/__/firebase/7.14.4/firebase-analytics.js"></script>
+<script src="/__/firebase/7.14.5/firebase-firestore.js"></script>
+<script src="/__/firebase/7.14.5/firebase-storage.js"></script>
+<script src="/__/firebase/init.js"></script>
+
+<script>
+    var storageRef = firebase.storage().ref();
+    var db = firebase.firestore();
+    let quizList = []
+
+    db.collection("quizes").get().then((querySnapshot) => {
+        querySnapshot.forEach((doc) => {
+            var quiz = doc.data()
+            quiz.id = doc.id
+            quizList.push(quiz)
+        })
+    }).then(() => {
+        quizList.sort((a, b) => (a.likes < b.likes) ? 1 : -1)
+        quizList.forEach(quiz => {
+            var tr = document.createElement("tr");
+
+
+            var name = document.createElement("td");
+            var a = document.createElement('a');
+            var link = document.createTextNode(quiz.name);
+            a.appendChild(link);
+            a.href = "/?q=" + quiz.id;
+            name.appendChild(a);
+            tr.appendChild(name)
+
+
+            var likes = document.createElement("td");
+            var likesText = document.createTextNode(quiz.likes);
+            likes.appendChild(likesText)
+            tr.appendChild(likes)
+
+            var dislikes = document.createElement("td");
+            var dislikesText = document.createTextNode(quiz.dislikes);
+            dislikes.appendChild(dislikesText)
+            tr.appendChild(dislikes)
+
+            var items = document.createElement("td");
+            var itemsText = document.createTextNode(quiz.type);
+            items.appendChild(itemsText)
+            tr.appendChild(items)
+
+            document.getElementById("quizes-table").appendChild(tr);
+
+        })
+    })
+</script>
+
+</html>

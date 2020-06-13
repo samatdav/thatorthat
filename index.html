@@ -1,0 +1,59 @@
+<html>
+
+<head>
+    <title>That OR That</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+        integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+    <link rel="stylesheet" href="./style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Indie+Flower&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div id="name-header">
+        <a href="./home.html">
+            <!-- <div class="home">That OR That</div> -->
+            <div class="home"><img src="logo.svg" /></div>
+        </a>
+        <span id="header-text">
+            <span id="quiz-title"></span>. Best of <span id="best-of-num"></span>.
+            Round <span id="round-num"></span>
+        </span>
+        <a href="./create.html">
+            <span class="create-quiz">Create quiz</span>
+        </a>
+    </div>
+    <div class="content-header">
+        <div id="rate-quiz" style="display: none;">Did you like the quiz?
+            <div>
+                <span id="rate-like">👍🏻</span>
+                <span id="rate-dislike">👎🏻</span>
+            </div>
+        </div>
+        <div class="image-name" id='image-name-left'></div>
+        <div class="image-name" id='image-name-right'></div>
+    </div>
+    <div id="quiz-body">
+        <div class="image" id="image-left-div">
+            <img id="image-left" onclick="onImageClick('left')" src="" />
+        </div>
+        <div class="image" id="image-right-div">
+            <img id="image-right" onclick="onImageClick('right')" src="" />
+        </div>
+        <img class="vs-image" src="vs.svg" />
+        <!-- <div class="vs-image">OR</div> -->
+    </div>
+    <div id="quiz-winner" style="display: none">
+        <div class="winner-image-div">
+            <img id="winner-image" src="" />
+        </div>
+    </div>
+
+    <script src="/__/firebase/7.14.4/firebase-app.js"></script>
+    <script src="/__/firebase/7.14.4/firebase-analytics.js"></script>
+    <script src="/__/firebase/7.14.5/firebase-firestore.js"></script>
+    <script src="/__/firebase/7.14.5/firebase-storage.js"></script>
+    <script src="/__/firebase/init.js"></script>
+    <script src="./script.js"></script>
+</body>
+
+</html>

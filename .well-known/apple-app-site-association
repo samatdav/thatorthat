@@ -1,0 +1,17 @@
+{
+  "applinks": {
+      "details": [
+           {
+             "appIDs": [ "X96WC7QB45.denik.thatorthat" ],
+             "components": [
+               {
+                  "/": "/*"
+               },
+             ]
+           }
+       ]
+   },
+   "webcredentials": {
+      "apps": [ "X96WC7QB45.denik.thatorthat" ]
+   }
+}

@@ -1,0 +1,201 @@
+<html>
+
+<head>
+    <title>That OR That</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+        integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+    <link rel="stylesheet" href="./style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Indie+Flower&display=swap" rel="stylesheet">s
+</head>
+
+<body>
+    <div id="name-header">
+        <a href="./home.html">
+            <div class="home"><img src="logo.svg" /></div>
+        </a>
+        Create a new quiz
+    </div>
+    <div class="create-content">
+        <div class="create-header-text">
+            <div>Select or drag and drop images</div>
+        </div>
+        <div class="upload-box">
+            <input type="file" id="input" multiple>
+        </div>
+        <div class="create-quiz-header">
+            <div>
+                <input id="quiz-name" placeholder="Name your quiz" />
+            </div>
+            <button id="submit-create-button" onclick="submitImages()">Submit</button>
+        </div>
+        <div class="upload-status">
+            <div id="upload-text"></div>
+            <div id="upload-count"></div>
+            <div id="progress-container">
+                <div id="progress-bar-id"></div>
+            </div>
+        </div>
+
+        <div class="uploaded-images">
+            <div id="images-list"></div>
+        </div>
+    </div>
+</body>
+
+<script src="/__/firebase/7.14.4/firebase-app.js"></script>
+<script src="/__/firebase/7.14.4/firebase-analytics.js"></script>
+<script src="/__/firebase/7.14.5/firebase-firestore.js"></script>
+<script src="/__/firebase/7.14.5/firebase-storage.js"></script>
+<script src="/__/firebase/init.js"></script>
+
+<script>
+    var db = firebase.firestore();
+    var storageRef = firebase.storage().ref();
+    var imageNames = []
+
+    const quizId = Math.random().toString(36).substring(7);
+
+    const inputElement = document.getElementById("input");
+    inputElement.addEventListener("change", handleFiles, false);
+
+    let uploadedImages = [];
+    function handleFiles() {
+        uploadedImages = uploadedImages.concat(Array.from(this.files))
+        // setSelectedImagesText()
+        updateFiles()
+    }
+
+    function updateFiles() {
+        document.getElementById("images-list").innerHTML = ""
+        let counter = 0
+        for (let i = 0; i < uploadedImages.length; i++) {
+            compress(uploadedImages[i], i)
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                var node = document.createElement("div");
+                var textnode = document.createTextNode(uploadedImages[i].name);
+                var img = document.createElement("img");
+                img.setAttribute("src", e.target.result);
+                var imgContainer = document.createElement("div");
+                var nameInput = document.createElement("input");
+                if (imageNames[i]) {
+                    nameInput.value = imageNames[i]
+                }
+
+                nameInput.addEventListener('change', (event) => {
+                    imageNames[i] = event.target.value
+                });
+
+                nameInput.id = 'image-name-' + i;
+                var deleteButton = document.createElement("span");
+                node.classList.add("image-item");
+                imgContainer.classList.add("li-img-container");
+                imgContainer.appendChild(img);
+                var xText = document.createTextNode('X');
+                deleteButton.appendChild(xText);
+                deleteButton.classList.add("delete-button");
+                deleteButton.onclick = function () {
+                    uploadedImages.splice(i, 1);
+                    imageNames.splice(i, 1);
+                    // setSelectedImagesText()
+                    updateFiles(uploadedImages)
+                };
+                node.appendChild(imgContainer);
+                node.appendChild(nameInput);
+                node.appendChild(deleteButton);
+                document.getElementById("images-list").appendChild(node);
+            }
+            reader.readAsDataURL(uploadedImages[i]);
+        }
+
+    }
+
+    function submitImages() {
+        let uploaded = 0;
+        let imageUrls = [];
+        if (!uploadedImages || ![4, 8, 16, 32, 64, 128].includes(uploadedImages.length)) {
+            alert('Please upload 4, 8, 16, 32, 64 or 128 images!');
+        } else {
+            let quizName = document.getElementById("quiz-name").value
+            document.getElementById("upload-text").innerHTML = 'Please wait for the upload to finish...'
+            document.getElementById("upload-count").innerHTML = ' Uploaded <b>' + uploaded + ' out of ' + uploadedImages.length
+            document.getElementById("progress-container").style.display = 'block';
+            document.getElementById("submit-create-button").disabled = true
+            for (let i = 0; i < uploadedImages.length; i++) {
+                var imageRef = storageRef.child('quizImages/' + quizId + '/' + i);
+                imageRef.put(uploadedImages[i]).then(function (snapshot) {
+                    uploaded += 1;
+                    document.getElementById("upload-count").innerHTML = ' Uploaded <b>' + uploaded + ' out of ' + uploadedImages.length
+                    document.getElementById("progress-bar-id").style.width = uploaded / uploadedImages.length * 100 + '%';
+                    document.getElementById("progress-bar-id").setAttribute("aria-valuenow", uploaded / uploadedImages.length * 100 + '%');
+                    if (uploaded === uploadedImages.length) {
+                        const quizUrl = 'thatorthat.com/?q=' + quizId
+                        document.getElementById("upload-text").innerHTML =
+                            'Done! The quiz URL is <a href="https://' + quizUrl + '">' + quizUrl + '</a>'
+                        document.getElementById("upload-count").innerHTML = ''
+                        document.getElementById("progress-container").style.display = 'none';
+                    }
+                    snapshot.ref.getDownloadURL().then(function (url) {
+                        if (!quizRef) {
+                            var quizRef = db.collection("quizes").doc(quizId)
+                            quizRef.set({
+                                dislikes: 0,
+                                likes: 0,
+                                name: quizName || quizId,
+                                type: uploadedImages.length,
+                            })
+                        }
+                        quizRef.collection('items').doc(i.toString()).set({
+                            name: document.getElementById("image-name-" + i).value,
+                            url: url,
+                            wins: 0,
+                        })
+                    });
+                })
+            }
+        }
+    }
+
+
+    function compress(file, i) {
+        const fileName = i;
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = event => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                if (img.width > 1600) {
+                    const elem = document.createElement('canvas');
+                    const ctx = elem.getContext('2d');
+                    const width = 1600;
+                    const scaleFactor = width / img.width;
+                    elem.width = width;
+                    elem.height = img.height * scaleFactor;
+                    ctx.drawImage(img, 0, 0, width, img.height * scaleFactor);
+
+                    ctx.canvas.toBlob((blob) => {
+                        const file = new File([blob], fileName, {
+                            type: 'image/jpeg',
+                            lastModified: Date.now()
+                        });
+                        uploadedImages[i] = file
+                    }, 'image/jpeg', 1);
+                }
+            },
+                reader.onerror = error => console.log(error);
+        };
+    }
+
+    // function setSelectedImagesText() {
+    //     const n = uploadedImages.length
+    //     document.getElementById("images-selected").innerHTML = n
+    //     if (n > 0) {
+    //         document.getElementById("images-selected-wrap").style.display = 'block';
+    //     } else {
+    //         document.getElementById("images-selected-wrap").style.display = 'none';
+    //     }
+    // }
+</script>
+
+</html>
